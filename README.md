@@ -1,2 +1,557 @@
 # Quico666.github.io
 Calculadora de inversion inmobiliaria
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Profesional Inversiones Inmobiliarias</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; min-height: 100vh; }
+        .container { max-width: 1800px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
+        h1 { color: #1a3a5f; text-align: center; margin-bottom: 40px; font-size: 2.5em; font-weight: 700; background: linear-gradient(90deg, #3498db, #2c3e50); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .input-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
+        .input-card { background: #f8f9fc; padding: 25px; border-radius: 12px; border: 1px solid #e1e8ed; }
+        .input-card h3 { color: #1a3a5f; margin-bottom: 20px; font-size: 1.3em; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        .input-field { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #3a4a5c; font-size: 14px; }
+        input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #d0d9e2; border-radius: 8px; font-size: 15px; transition: all 0.3s; }
+        input[type="number"]:focus { border-color: #3498db; box-shadow: 0 0 0 4px rgba(52,152,219,0.2); outline: none; }
+        small { color: #95a5a6; font-size: 0.8em; display: block; margin-top: 4px; }
+        
+        .metric-card { background: linear-gradient(145deg, #ffffff, #f0f4f8); padding: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); border-left: 6px solid #3498db; margin-bottom: 30px; }
+        .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 40px; }
+        .metric-item { text-align: center; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .metric-value { font-size: 2.2em; font-weight: 700; color: #3498db; margin: 10px 0; }
+        .metric-label { color: #5a6c7d; font-size: 0.95em; font-weight: 500; }
+        
+        .chart-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); margin-bottom: 40px; height: 450px; }
+        .chart-title { color: #1a3a5f; font-size: 1.4em; margin-bottom: 25px; text-align: center; font-weight: 600; }
+        
+        .scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
+        .scenario-card { padding: 25px; border-radius: 12px; transition: transform 0.3s, box-shadow 0.3s; }
+        .scenario-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .favorable { background: linear-gradient(145deg, #d4f1e4, #c3e8d6); border-left: 5px solid #27ae60; }
+        .desfavorable { background: linear-gradient(145deg, #fde2e2, #fcd1d1); border-left: 5px solid #e74c3c; }
+        .crisis { background: linear-gradient(145deg, #fff3cd, #ffeaa7); border-left: 5px solid #f39c12; }
+        
+        .leverage-indicator { padding: 20px; border-radius: 10px; margin-top: 20px; font-weight: 600; text-align: center; font-size: 1.1em; }
+        .safe { background: #d4f1e4; color: #27ae60; }
+        .moderate { background: #fff3cd; color: #f39c12; }
+        .risky { background: #fde2e2; color: #e74c3c; }
+        
+        button { background: linear-gradient(45deg, #3498db, #2c3e50); color: white; padding: 18px 45px; border: none; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 700; margin: 30px 0; width: 100%; transition: all 0.3s; box-shadow: 0 8px 25px rgba(52,152,219,0.3); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(52,152,219,0.4); }
+        
+        .next-property { background: linear-gradient(145deg, #e8f4fd, #d6e9f7); border: 2px dashed #3498db; padding: 25px; border-radius: 15px; text-align: center; margin-top: 30px; }
+        .next-property h3 { color: #1a3a5f; margin-bottom: 15px; }
+        .timeline { font-size: 1.5em; font-weight: 700; color: #3498db; margin: 15px 0; }
+        
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #edf2f7; }
+        .result-item:last-child { border-bottom: none; font-weight: 700; color: #27ae60; font-size: 1.1em; }
+        .comparison-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        .comparison-table th, .comparison-table td { padding: 14px; text-align: center; border-bottom: 1px solid #e0e6ed; }
+        .comparison-table th { background: #f1f5f9; color: #1a3a5f; font-weight: 600; }
+        .comparison-table tr:hover { background: #f8fafc; }
+        .comparison-table .optimal { background: #d4f1e4; font-weight: 700; }
+        .comparison-table .optimal td { color: #27ae60; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .icon { font-size: 1.5em; margin-right: 8px; vertical-align: middle; }
+        
+        .cost-summary { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9em; }
+        .cost-summary strong { color: #1a3a5f; }
+        .cost-summary .total { color: #e74c3c; font-size: 1.1em; font-weight: 700; }
+        
+        .progress-bar { width: 100%; height: 8px; background: #e0e6ed; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.5s ease; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Dashboard Profesional Inversión Inmobiliaria</h1>
+        
+        <!-- SECCIÓN INPUTS -->
+        <div class="input-section">
+            <div class="input-card">
+                <h3><span class="icon">📊</span>Datos Propiedad</h3>
+                <div class="input-field"><label>Precio Compra (€)</label><input type="number" id="purchasePrice" value="250000"></div>
+                <div class="input-field"><label>Alquiler Mensual (€)</label><input type="number" id="monthlyRent" value="1200"></div>
+                <div class="input-field"><label>Tipo</label><select id="propertyType" onchange="updateITP()">
+                    <option value="used" selected>Segunda Mano (ITP 10%)</option>
+                    <option value="new">Obra Nueva (IVA 10%)</option>
+                </select></div>
+            </div>
+            
+            <div class="input-card">
+                <h3><span class="icon">💰</span>Financiación</h3>
+                <div class="input-field"><label>% Financiado (Préstamo)</label><input type="number" id="financingPct" value="90" max="95"><small>Normalmente 70-80% para inversión</small></div>
+                <div class="input-field"><label>Interés Hipoteca (%)</label><input type="number" id="interest" value="2.8" step="0.1"></div>
+                <div class="input-field"><label>Años Hipoteca</label><input type="number" id="years" value="25"></div>
+            </div>
+            
+            <div class="input-card">
+                <h3><span class="icon">🏠</span>Gastos Anuales</h3>
+                <div class="input-field"><label>Comunidad (€/año)</label><input type="number" id="community" value="600"></div>
+                <div class="input-field"><label>IBI (€/año)</label><input type="number" id="ibi" value="400"></div>
+                <div class="input-field"><label>Seguro + Mantenimiento (€/año)</label><input type="number" id="otherExpenses" value="500"></div>
+            </div>
+        </div>
+
+        <!-- GASTOS DE COMPRA DETALLADO -->
+        <div class="input-section">
+            <div class="input-card" style="grid-column: span 3;">
+                <h3><span class="icon">📋</span>Gastos de Compra (Operación)</h3>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
+                    <div class="input-field"><label>Impuesto (ITP/IVA) %</label><input type="number" id="purchaseTaxPct" value="10" step="0.1"><small id="taxType">Para segunda mano</small></div>
+                    <div class="input-field"><label>Notaría (€)</label><input type="number" id="notaryCost" value="800"></div>
+                    <div class="input-field"><label>Registro (€)</label><input type="number" id="registryCost" value="600"></div>
+                    <div class="input-field"><label>Gestoría (€)</label><input type="number" id="gestoriaCost" value="500"></div>
+                    <div class="input-field"><label>Tasación (€)</label><input type="number" id="tasacionCost" value="500"></div>
+                </div>
+                <div class="cost-summary" id="costSummary">
+                    <strong>Desglose Coste Total:</strong> <span id="costBreakdown">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARÁMETROS CRECIMIENTO -->
+        <div class="input-section">
+            <div class="input-card" style="grid-column: span 3;">
+                <h3><span class="icon">📈</span>Proyección y Crecimiento</h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    <div class="input-field"><label>Crecimiento Anual Renta (%)</label><input type="number" id="rentGrowth" value="2" step="0.1"></div>
+                    <div class="input-field"><label>Crecimiento Anual Propiedad (%)</label><input type="number" id="propertyGrowth" value="3" step="0.1"></div>
+                    <div class="input-field"><label>Retorno MSCI World (%)</label><input type="number" id="msciReturn" value="7" step="0.1"></div>
+                    <div class="input-field"><label>Inflación (%)</label><input type="number" id="inflation" value="2" step="0.1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÉTRICAS CLAVE -->
+        <div class="metric-grid">
+            <div class="metric-item">
+                <div class="metric-label">Capital Total Invertido</div>
+                <div class="metric-value" id="cashInvested">-</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Cash-on-Cash ROI</div>
+                <div class="metric-value" id="cashROI">-</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Próximo Piso</div>
+                <div class="metric-value" id="nextPatio">-</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">LTV Ratio</div>
+                <div class="metric-value" id="leverageRatio">-</div>
+            </div>
+        </div>
+
+        <!-- BOTÓN CALCULAR -->
+        <button onclick="calculateAll()">🚀 Calcular Análisis Completo</button>
+
+        <!-- GRÁFICO PRINCIPAL -->
+        <div class="chart-container">
+            <div class="chart-title">📊 Proyección Acumulada 20 Años: Inmobiliario vs MSCI World</div>
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <!-- DETALLE OPERACIÓN -->
+        <div class="metric-card">
+            <h3><span class="icon">💸</span>Desglose Operación de Compra</h3>
+            <div class="result-item"><span>Precio Compra:</span><span id="displayPurchasePrice">-</span></div>
+            <div class="result-item"><span>Préstamo Hipotecario:</span><span id="displayLoanAmount">-</span></div>
+            <div class="result-item"><span>Entrada Propia (Down Payment):</span><span id="displayDownPayment">-</span></div>
+            <div class="result-item"><span>Gastos de Compra (ITP, Notaría, etc.):</span><span id="displayPurchaseCosts">-</span></div>
+            <div class="result-item total"><span><strong>CAPITAL TOTAL INVERTIDO:</strong></span><span id="totalCashInvestedDetail">-</span></div>
+        </div>
+
+        <!-- DETALLE GASTOS ANUALES -->
+        <div class="metric-card">
+            <h3><span class="icon">🏠</span>Desglose Anual de Gastos Operativos</h3>
+            <div class="result-item"><span>Alquiler Bruto Anual:</span><span id="grossRent">-</span></div>
+            <div class="result-item"><span>Gastos Operativos:</span><span id="totalExpenses">-</span></div>
+            <div class="result-item"><span>Net Operating Income (NOI):</span><span id="noi">-</span></div>
+            <div class="result-item"><span>Cuota Hipoteca Anual:</span><span id="debtService">-</span></div>
+            <div class="result-item"><span>Flujo Neto Tras Deuda:</span><span id="cashflowAfterDebt">-</span></div>
+            <div class="result-item total"><span><strong>ROI Cash-on-Cash:</strong></span><span id="cashROIDetail">-</span></div>
+        </div>
+
+        <!-- ESCENARIOS -->
+        <div class="scenario-grid" id="scenarioGrid"></div>
+
+        <!-- INDICADOR APALANCAMIENTO -->
+        <div class="metric-card">
+            <h3><span class="icon">🏦</span>Análisis de Apalancamiento Actual</h3>
+            <div class="result-item"><span>LTV Ratio (Loan-to-Value):</span><span id="ltvRatio">-</span></div>
+            <div class="result-item"><span>DSCR (Cobertura Cuota):</span><span id="dscr">-</span></div>
+            <div class="result-item"><span>Debt-to-Equity Ratio:</span><span id="debtToEquity">-</span></div>
+            <div id="leverageHealth" class="leverage-indicator">-</div>
+        </div>
+
+        <!-- NUEVO: PUNTO ÓPTIMO DE APALANCAMIENTO -->
+        <div class="metric-card">
+            <h3><span class="icon">🎯</span>Punto Óptimo de Apalancamiento</h3>
+            <p style="color: #7f8c8d; margin-bottom: 20px;">El ROI no mejora indefinidamente con más apalancamiento. El punto óptimo equilibra el beneficio del apalancamiento con el riesgo de flujo de caja.</p>
+            <div class="comparison-table-container" id="optimalLeverageTable"></div>
+            <div class="warning" id="optimalLeverageExplanation" style="margin-top: 20px;">
+                <strong>💡 Nota:</strong> El apalancamiento óptimo depende del DSCR. Por debajo de 1.0, la cuota no se cubre. El ROI máximo aparece antes de ese punto.
+            </div>
+        </div>
+
+        <!-- PRÓXIMO PISO CORREGIDO -->
+        <div class="next-property">
+            <h3><span class="icon">🏘️</span>Indicador Próxima Inversión (Corregido)</h3>
+            <div class="timeline" id="nextPropertyTime">-</div>
+            <p>Para comprar otro piso de <span id="nextPropertyValue">-</span> necesitas <strong><span id="nextTotalCashNeeded">-</span></strong> en total (entrada + gastos)</p>
+        </div>
+    </div>
+
+    <script>
+        let mainChart;
+
+        function updateITP() {
+            const type = document.getElementById('propertyType').value;
+            const taxField = document.getElementById('purchaseTaxPct');
+            const taxLabel = document.getElementById('taxType');
+            
+            if(type === 'new') {
+                taxField.value = 10;
+                taxLabel.textContent = 'IVA obra nueva';
+            } else {
+                taxField.value = 10;
+                taxLabel.textContent = 'ITP segunda mano';
+            }
+            calculateAll();
+        }
+
+        function calculateAll() {
+            try {
+                // ===== INPUTS PRINCIPALES =====
+                const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+                const monthlyRent = parseFloat(document.getElementById('monthlyRent').value) || 0;
+                const propertyType = document.getElementById('propertyType').value;
+                const financingPct = parseFloat(document.getElementById('financingPct').value) / 100;
+                const interestRate = parseFloat(document.getElementById('interest').value) / 100;
+                const years = parseFloat(document.getElementById('years').value);
+                const community = parseFloat(document.getElementById('community').value) || 0;
+                const ibi = parseFloat(document.getElementById('ibi').value) || 0;
+                const otherExpenses = parseFloat(document.getElementById('otherExpenses').value) || 0;
+                
+                // ===== GASTOS DE COMPRA =====
+                const purchaseTaxPct = parseFloat(document.getElementById('purchaseTaxPct').value) / 100;
+                const notaryCost = parseFloat(document.getElementById('notaryCost').value) || 0;
+                const registryCost = parseFloat(document.getElementById('registryCost').value) || 0;
+                const gestoriaCost = parseFloat(document.getElementById('gestoriaCost').value) || 0;
+                const tasacionCost = parseFloat(document.getElementById('tasacionCost').value) || 0;
+                
+                // ===== GASTOS DE COMPRA CALCULADOS =====
+                const purchaseTaxAmount = purchasePrice * purchaseTaxPct;
+                const totalPurchaseCosts = purchaseTaxAmount + notaryCost + registryCost + gestoriaCost + tasacionCost;
+                
+                // ===== FINANCIACIÓN =====
+                const loanAmount = purchasePrice * financingPct;
+                const downPayment = purchasePrice - loanAmount;
+                
+                // ===== CAPITAL TOTAL INVERTIDO =====
+                const totalCashInvested = downPayment + totalPurchaseCosts;
+                
+                // ===== GASTOS ANUALES OPERATIVOS =====
+                const annualExpenses = community + ibi + otherExpenses;
+                const grossRent = monthlyRent * 12;
+                const netOperatingIncome = grossRent - annualExpenses;
+                
+                // ===== HIPOTECA =====
+                const monthlyRate = interestRate / 12;
+                const numPayments = years * 12;
+                const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+                const annualDebtService = monthlyPayment * 12;
+                const annualCashflow = netOperatingIncome - annualDebtService;
+                
+                // ===== MÉTRICAS CLAVE =====
+                const cashROI = totalCashInvested > 0 ? (annualCashflow / totalCashInvested) * 100 : 0;
+                const ltv = (loanAmount / purchasePrice) * 100;
+                const dscr = annualDebtService > 0 ? netOperatingIncome / annualDebtService : 0;
+                const debtToEquity = downPayment > 0 ? loanAmount / downPayment : 0;
+                
+                // ===== ACTUALIZAR UI - OPERACIÓN =====
+                document.getElementById('displayPurchasePrice').textContent = `€${purchasePrice.toLocaleString('es-ES')}`;
+                document.getElementById('displayLoanAmount').textContent = `€${loanAmount.toLocaleString('es-ES')}`;
+                document.getElementById('displayDownPayment').textContent = `€${downPayment.toLocaleString('es-ES')}`;
+                document.getElementById('displayPurchaseCosts').textContent = `€${totalPurchaseCosts.toLocaleString('es-ES')}`;
+                document.getElementById('totalCashInvestedDetail').textContent = `€${totalCashInvested.toLocaleString('es-ES')}`;
+                
+                // ===== ACTUALIZAR UI - MÉTRICAS =====
+                document.getElementById('cashInvested').textContent = `€${totalCashInvested.toLocaleString('es-ES', {maximumFractionDigits:0})}`;
+                document.getElementById('cashROI').textContent = `${cashROI.toFixed(1)}%`;
+                document.getElementById('cashROIDetail').textContent = `${cashROI.toFixed(1)}%`;
+                document.getElementById('grossRent').textContent = `€${grossRent.toLocaleString('es-ES')}`;
+                document.getElementById('totalExpenses').textContent = `€${annualExpenses.toLocaleString('es-ES')}`;
+                document.getElementById('noi').textContent = `€${netOperatingIncome.toLocaleString('es-ES')}`;
+                document.getElementById('debtService').textContent = `€${annualDebtService.toLocaleString('es-ES')}`;
+                document.getElementById('cashflowAfterDebt').textContent = `€${annualCashflow.toLocaleString('es-ES')}`;
+                
+                document.getElementById('ltvRatio').textContent = `${ltv.toFixed(1)}%`;
+                document.getElementById('dscr').textContent = dscr.toFixed(2);
+                document.getElementById('debtToEquity').textContent = `${debtToEquity.toFixed(1)}:1`;
+
+                // ===== APALANCAMIENTO HEALTH =====
+                const leverageDiv = document.getElementById('leverageHealth');
+                if(ltv < 60 && dscr > 1.25) {
+                    leverageDiv.textContent = "✅ SANO: Apalancamiento conservador y flujo cubre cuota";
+                    leverageDiv.className = "leverage-indicator safe";
+                } else if(ltv <= 75 && dscr > 1.0) {
+                    leverageDiv.textContent = "ℹ️ MODERADO: Equilibrio riesgo-retorno aceptable";
+                    leverageDiv.className = "leverage-indicator moderate";
+                } else {
+                    leverageDiv.textContent = "⚠️ RIESGO ALTO: Sensible a crisis y vacantes";
+                    leverageDiv.className = "leverage-indicator risky";
+                }
+
+                // ===== PUNTO ÓPTIMO DE APALANCAMIENTO =====
+                calculateOptimalLeverage(purchasePrice, monthlyRent, annualExpenses, interestRate, years, totalPurchaseCosts);
+
+                // ===== PRÓXIMO PISO (CORREGIDO) =====
+                const nextPropertyValue = purchasePrice * 1.2;
+                const nextDownPayment = nextPropertyValue * (1 - financingPct);
+                // CORRECCIÓN: Añadir gastos de compra al cálculo del próximo piso
+                const nextPurchaseCosts = nextPropertyValue * purchaseTaxPct + notaryCost + registryCost + gestoriaCost + tasacionCost;
+                const nextTotalCashNeeded = nextDownPayment + nextPurchaseCosts;
+                const yearsToNext = Math.max(0, annualCashflow > 0 ? nextTotalCashNeeded / annualCashflow : Infinity);
+                
+                document.getElementById('nextPatio').textContent = `${yearsToNext.toFixed(1)}a`;
+                document.getElementById('nextPropertyTime').textContent = `${yearsToNext.toFixed(1)} años`;
+                document.getElementById('nextPropertyValue').textContent = `€${nextPropertyValue.toLocaleString('es-ES')}`;
+                document.getElementById('nextTotalCashNeeded').textContent = `€${nextTotalCashNeeded.toLocaleString('es-ES')}`;
+                
+                // ===== GRÁFICO 20 AÑOS =====
+                const rentGrowth = parseFloat(document.getElementById('rentGrowth').value) / 100 || 0.02;
+                const propertyGrowth = parseFloat(document.getElementById('propertyGrowth').value) / 100 || 0.03;
+                const msciReturn = parseFloat(document.getElementById('msciReturn').value) / 100 || 0.07;
+
+                const labels = [];
+                const msciData = [];
+                const propertyData = [];
+                
+                let msciValue = totalCashInvested;
+                let propertyValue = purchasePrice;
+                let propertyEquity = totalCashInvested;
+                let accumulatedCashflow = 0;
+
+                for(let i = 0; i <= 20; i++) {
+                    labels.push(`Año ${i}`);
+                    propertyData.push(Math.round(propertyEquity + accumulatedCashflow));
+                    msciData.push(Math.round(msciValue));
+                    
+                    if(i < 20) {
+                        propertyValue *= (1 + propertyGrowth);
+                        propertyEquity = propertyValue - loanAmount;
+                        accumulatedCashflow += annualCashflow * Math.pow(1 + rentGrowth, i);
+                        msciValue *= (1 + msciReturn);
+                    }
+                }
+
+                drawChart(labels, propertyData, msciData);
+
+                // ===== ESCENARIOS =====
+                calculateScenarios(cashROI, netOperatingIncome, annualDebtService, totalCashInvested);
+
+                // ===== ACTUALIZAR RESUMEN GASTOS =====
+                document.getElementById('costBreakdown').innerHTML = `
+                    ITP/IVA: €${purchaseTaxAmount.toLocaleString('es-ES')} | 
+                    Notaría: €${notaryCost} | Registro: €${registryCost} | Gestoría: €${gestoriaCost} | Tasación: €${tasacionCost} | 
+                    <span class="total">TOTAL GASTOS: €${totalPurchaseCosts.toLocaleString('es-ES')}</span>
+                `;
+                
+            } catch (error) {
+                console.error("Error en cálculos:", error);
+                alert("Error en los cálculos. Revisa la consola (F12) para más detalles.");
+            }
+        }
+
+        function calculateOptimalLeverage(purchasePrice, monthlyRent, annualExpenses, interestRate, years, totalPurchaseCosts) {
+            const grossRent = monthlyRent * 12;
+            const netOperatingIncome = grossRent - annualExpenses;
+            const scenarios = [];
+            let maxROI = -Infinity;
+            let optimalLTV = 0;
+            
+            // Probar LTV desde 50% hasta 90% en incrementos de 5%
+            for(let ltv = 0.50; ltv <= 0.90; ltv += 0.05) {
+                const loanAmount = purchasePrice * ltv;
+                const downPayment = purchasePrice - loanAmount;
+                const totalCashInvested = downPayment + totalPurchaseCosts;
+                
+                // Calcular cuota hipotecaria
+                const monthlyRate = interestRate / 12;
+                const numPayments = years * 12;
+                const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+                const annualDebtService = monthlyPayment * 12;
+                
+                // Calcular ROI y DSCR
+                const annualCashflow = netOperatingIncome - annualDebtService;
+                const cashROI = totalCashInvested > 0 ? (annualCashflow / totalCashInvested) * 100 : -999;
+                const dscr = annualDebtService > 0 ? netOperatingIncome / annualDebtService : 0;
+                
+                scenarios.push({
+                    ltv: (ltv * 100).toFixed(0),
+                    downPayment: downPayment,
+                    cashInvested: totalCashInvested,
+                    roi: cashROI,
+                    dscr: dscr,
+                    monthlyPayment: monthlyPayment
+                });
+                
+                if(cashROI > maxROI && dscr > 1.0) { // Solo considerar si DSCR es viable
+                    maxROI = cashROI;
+                    optimalLTV = ltv;
+                }
+            }
+            
+            // Generar tabla
+            let tableHTML = `
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>% Financiado</th>
+                            <th>Entrada Propio</th>
+                            <th>Capital Total</th>
+                            <th>ROI Cash-on-Cash</th>
+                            <th>DSCR</th>
+                            <th>Cuota Mensual</th>
+                        </tr>
+                    </tbody>
+                    <tbody>
+            `;
+            
+            scenarios.forEach(s => {
+                const isOptimal = parseFloat(s.ltv) === parseFloat((optimalLTV * 100).toFixed(0));
+                const rowClass = isOptimal ? ' class="optimal"' : '';
+                const icon = isOptimal ? ' 🏆' : '';
+                
+                tableHTML += `
+                    <tr${rowClass}>
+                        <td>${s.ltv}%${icon}</td>
+                        <td>€${s.downPayment.toLocaleString('es-ES')}</td>
+                        <td>€${s.cashInvested.toLocaleString('es-ES')}</td>
+                        <td>${s.roi.toFixed(1)}%</td>
+                        <td style="${s.dscr < 1.0 ? 'color: #e74c3c; font-weight: 600;' : ''}">${s.dscr.toFixed(2)}</td>
+                        <td>€${s.monthlyPayment.toLocaleString('es-ES', {maximumFractionDigits: 0})}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('optimalLeverageTable').innerHTML = tableHTML;
+            
+            // Explicación
+            const optimalEntry = scenarios.find(s => parseFloat(s.ltv) === parseFloat((optimalLTV * 100).toFixed(0)));
+            if(optimalEntry) {
+                document.getElementById('optimalLeverageExplanation').innerHTML = `
+                    <strong>🏆 Punto Óptimo Encontrado:</strong> Con <strong>${(optimalLTV * 100).toFixed(0)}% de financiación</strong> (entrada de €${optimalEntry.downPayment.toLocaleString('es-ES')}),
+                    obtienes el máximo ROI de <strong>${optimalEntry.roi.toFixed(1)}%</strong> manteniendo un DSCR saludable de ${optimalEntry.dscr.toFixed(2)}.
+                    ${optimalEntry.dscr < 1.25 ? '<br><br>⚠️ <strong>Advertencia:</strong> El DSCR óptimo es bajo. Considera reducir el LTV para mayor seguridad.' : ''}
+                `;
+            }
+        }
+
+        function calculateScenarios(baseROI, noi, debtService, cashInvested) {
+            const scenarios = [
+                { name: "Favorable", rentFactor: 1.3, expFactor: 0.7, color: "#27ae60", desc: "+30% renta, -30% gastos" },
+                { name: "Base", rentFactor: 1, expFactor: 1, color: "#3498db", desc: "Escenario actual" },
+                { name: "Crisis", rentFactor: 0.6, expFactor: 1.4, color: "#f39c12", desc: "-40% renta, +40% gastos" }
+            ];
+            
+            const grid = document.getElementById('scenarioGrid');
+            grid.innerHTML = scenarios.map(s => {
+                const adjustedNOI = (noi * s.rentFactor / s.expFactor);
+                const annualCashflow = adjustedNOI - debtService;
+                const newROI = cashInvested > 0 ? (annualCashflow / cashInvested) * 100 : 0;
+                
+                return `
+                    <div class="scenario-card ${s.name.toLowerCase()}">
+                        <h4>${s.name}: ${newROI.toFixed(1)}% ROI</h4>
+                        <p>${s.desc}</p>
+                        <div class="result-item" style="font-size: 0.9em;"><span>Flujo anual:</span><span>€${annualCashflow.toLocaleString('es-ES')}</span></div>
+                        <div class="progress-bar" style="margin-top: 10px;"><div class="progress-fill" style="width: ${Math.max(0, Math.min(newROI * 3, 100))}%; background: ${s.color}"></div></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function drawChart(labels, property, msci) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if(mainChart) mainChart.destroy();
+            
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Inmobiliario (Equity + Flujo Reinvertido)',
+                        data: property,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52,152,219,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }, {
+                        label: 'MSCI World (Capital Invertido)',
+                        data: msci,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231,76,60,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            display: true, 
+                            position: 'top',
+                            labels: { font: { size: 13, weight: '600' } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': €' + context.parsed.y.toLocaleString('es-ES');
+                                }
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            ticks: { 
+                                callback: function(value) { return '€' + value.toLocaleString('es-ES'); },
+                                font: { size: 12 }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            ticks: { font: { size: 12 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cálculo inicial al cargar
+        window.onload = function() {
+            calculateAll();
+        };
+    </script>
+</body>
+</html>
